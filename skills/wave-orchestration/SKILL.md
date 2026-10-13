@@ -148,7 +148,10 @@ Read the current orchestration's STATE_N.md. Repeat until the wave board is all 
 7. **Commit** -- pass: merge worktree, one commit per task (conventional format,
    no orchestration/wave in message), distill report into STATE_N.md (<=15 lines),
    mark done. Fail: escalation ladder.
-8. **Wave done** -- update wave board in STATE_N.md, then `/compact` or `/clear` orchestrator.
+8. **Distill Decisions (optional / milestone)** -- run **adr-distillation** to extract enduring
+   architectural decisions from `EXECUTION_PLAN_N.md` and `STATE_N.md` into `docs/decisions/`
+   before compacting or archiving planning state.
+9. **Wave done** -- update wave board in STATE_N.md, then `/compact` or `/clear` orchestrator.
 
 ## Escalation ladder (hard limits -- small models must not loop)
 
