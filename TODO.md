@@ -1,34 +1,38 @@
 # TODO
 
 ## Goal
-Make `skills sync` automatically clone missing upstream source repositories into sibling directories, while allowing maintainers to disable cloning with a flag.
+Make `../aigb-skills` match the authoritative `aigb-skills-usda` packaged skill content and sync behavior so `make sync` in `aigb-skills-usda` is deterministic and produces no churn, while preserving tracked provenance for copied/customized skills.
 
 ## Tasks
 
-### 1. Add sync CLI option
-- [x] Add `--no-clone` to `scripts/sync-skills.js` help text and argument parsing.
-- [x] Default sync behavior to auto-clone missing repositories.
-- [x] Thread the option through CLI dispatch if `bin/skills.js` forwards sync args directly.
+### 1. Establish alignment baseline
+- [x] Compare current `aigb-skills-usda` and `../aigb-skills` skill inventories, catalogs, and sync scripts.
+- [x] Identify skills that are USDA-authoritative copies, source-only skills that must remain in `../aigb-skills`, and externally pinned skills requiring tagged refs.
+- [x] Record any customizations that are being copied from USDA into `../aigb-skills` rather than transformed during sync.
 
-### 2. Implement repository auto-clone
-- [x] When a relative `source_repo` is missing, clone into the existing sibling location convention (`../<source_repo>`).
-- [x] Clone only when the lockfile entry has an `upstream` URL.
-- [x] Preserve the existing clear maintainer error when cloning is disabled or no `upstream` is available.
+### 2. Copy authoritative USDA skill content into `../aigb-skills`
+- [x] For every skill present in `aigb-skills-usda`, copy the full skill directory into the matching `../aigb-skills/skills/<name>` directory.
+- [x] Preserve `../aigb-skills` skills that are not present in USDA unless catalog/sync evidence shows they are obsolete.
+- [x] Ensure copied skills retain proper frontmatter attribution and source/provenance metadata.
 
-### 3. Fetch pinned refs
-- [x] For entries with `source_ref`, fetch tags/refs in the resolved source repository before extraction.
-- [x] Ensure cloned repositories can resolve pinned tags like `v1.2.0` and `v2.7.0`.
-- [x] Avoid destructive checkout of existing repositories unless needed for fetching refs.
+### 3. Align catalog provenance and pinned refs
+- [x] Update `../aigb-skills/catalog/skills.lock.json` so USDA-authoritative copied skills use `source_repo: aigb-skills` and matching local `source_path` entries where appropriate.
+- [x] Keep external tagged skills pinned to their required `source_ref` values and upstream URLs.
+- [x] Avoid hardcoded per-skill special cases unless they are explicitly documented and unavoidable.
 
-### 4. Update smoke coverage
-- [x] Add a smoke/test case for `--no-clone` preserving the current missing-repo error path.
-- [x] Keep existing sync behavior compatible for already-present sibling checkouts.
+### 4. Align sync implementation for deterministic materialization
+- [x] Port the USDA sync improvements into `../aigb-skills/scripts/sync-skills.js`, including metadata normalization, tag fetching, auto-clone/`--no-clone`, alias handling, and deterministic sanitization.
+- [x] Ensure metadata injection does not create churn against the copied USDA-authoritative skill files.
+- [x] Keep maintainer-only sync behavior separate from packaged install behavior.
 
-### 5. Validate
-- [x] Run `npm test`.
-- [x] Run `npm run validate:skills`.
+### 5. Validate no-churn sync path
+- [x] Run package parsing and relevant validation in both repositories.
+- [x] Run `make sync` in `../aigb-skills` and verify it is stable.
+- [x] Run `make sync` in `aigb-skills-usda` and verify the USDA working tree has no unintended skill churn.
+- [x] Run `npm run validate:skills` and `npm run test:validate` where available.
 
 ## Notes
-- Auto-clone applies only to `skills sync`, not `skills install`.
-- Clone target remains the sibling directory checked today: `path.resolve(REPO_ROOT, '..', source_repo)`.
-- If a repository lacks `upstream`, sync must fail rather than guessing a URL.
+- For this work, `aigb-skills-usda` is the authority.
+- Preferred customization strategy: copy modified/customized skill content into `../aigb-skills` and keep attribution/provenance metadata, not opaque sync-time patching.
+- Special cases may exist, but they must be tracked and minimized.
+- Final success is a deterministic sync that does not dirty `aigb-skills-usda`.
